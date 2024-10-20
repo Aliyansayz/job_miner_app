@@ -16,3 +16,17 @@ Requires: PyQt6-Qt6, PyQt6-sip
 Required-by: PyQt6-WebEngine
 
 ```
+
+```
+Name: playwright
+Version: 1.47.0
+Summary: A high-level API to automate web browsers
+Home-page: https://github.com/Microsoft/playwright-python
+Author: Microsoft Corporation
+Author-email:
+License: Apache-2.0
+Location: C:\Users\ADMIN\PycharmProjects\web_scraper\.venv\Lib\site-packages
+Requires: greenlet, pyee
+Required-by:
+
+```
