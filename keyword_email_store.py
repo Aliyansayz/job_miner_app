@@ -1,6 +1,6 @@
 import pickle
 import os
-
+from dashboard_function import make_dashboard
 
 
 class manage_store_send_email:
@@ -76,7 +76,16 @@ class dashboard_email_report:
 
     pass
 
-def send_email_with_html(cls, html_content, sender_info, recipient_email, tf=""):
+html_content_list = []
+for keyword in keywords:
+      html_content = saving_html(record_info, keyword)
+      saving_html(record_info, keyword)
+      html_content_list.append(html_content)
+
+for email in emails: 
+    
+
+def send_email_with_html(cls, html_content_list, keyword_list sender_info, recipient_email, tf=""):
         import smtplib, ssl
         from email.mime.text import MIMEText
 
@@ -85,19 +94,21 @@ def send_email_with_html(cls, html_content, sender_info, recipient_email, tf="")
         # recipient_email
         if isinstance(recipient_email, list): recipient_email = list(recipient_email)
 
-        subject = f"{tf} Timeframe Report "
-        html_message = MIMEText(html_content, 'html')
-        html_message['Subject'] = subject
+        
         html_message['From']  = sender_email
         
         smtp = smtplib.SMTP("smtp-mail.outlook.com", port=587)
         smtp.starttls()
         smtp.login(sender_email, sender_password)
         for target_email in recipient_email:
-
-            html_message['To'] = target_email
-            print(target_email)
-            smtp.sendmail(sender_email, target_email, html_message.as_string())
+            for html_content, keyword in zip(html_content_list, keyword_list):
+                subject = f"{keyword} Report "
+                html_message = MIMEText(html_content, 'html')
+                html_message['Subject'] = subject
+            
+                html_message['To'] = target_email
+                print(target_email)
+                smtp.sendmail(sender_email, target_email, html_message.as_string())
         smtp.quit()
     
     
@@ -108,7 +119,7 @@ def saving_html(record_info, keyword):
     #     pickle.dump(record_info, file)
 
 
-    html_content = generate_html(record_info, keyword)
+    html_content = make_dashboard(record_info, keyword)
 
     folder_path = "reports"
     filename = f"Job_Mining_{keyword}.html"
