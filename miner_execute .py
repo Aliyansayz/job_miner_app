@@ -231,6 +231,8 @@ async def job_miner_execute(keyword, multi_keyword=False):
 
 
         else: return
+        await browser.close()
+        return  job_store
         # Generate URL for the keyword
 
         # for i in range(pages_num):
@@ -259,9 +261,6 @@ async def job_miner_execute(keyword, multi_keyword=False):
         #     await page.close()
         #     await asyncio.sleep(3)
 
-
-
-        await browser.close()
 
 
 
