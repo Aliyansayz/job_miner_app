@@ -158,7 +158,7 @@ def saving_html(record_info, keyword):
         file.write(html_content)
 
 # Scrape job data from a specific keyword
-async def scrape_keyword(keyword, multi_keyword=False):
+async def job_miner_execute(keyword, multi_keyword=False):
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch(headless=False, channel='chrome')
         page    = await browser.new_page()
@@ -243,11 +243,11 @@ async def scrape_keyword(keyword, multi_keyword=False):
 
 
 # Main function to run scraping for multiple keywords serially with delay
-async def get_jobs_upwork(keywords, pages_num=2):
-    for keyword in keywords:
-        await scrape_keyword(keyword, pages_num)
-        print(f"Finished scraping for keyword: {keyword}. Waiting for 30 seconds before the next keyword...")
-        await asyncio.sleep(30)  # Wait for 30 seconds before the next request
+# async def get_jobs_upwork(keywords, pages_num=2):
+#     for keyword in keywords:
+#         await scrape_keyword(keyword, pages_num)
+#         print(f"Finished scraping for keyword: {keyword}. Waiting for 30 seconds before the next keyword...")
+#         await asyncio.sleep(30)  # Wait for 30 seconds before the next request
 
 # List of keywords to search for
 # "ruby on rails",
@@ -255,5 +255,5 @@ async def get_jobs_upwork(keywords, pages_num=2):
 keywords = [ "ruby on rails", "python-visualization", "python-database", "tableau"]
 # keywords = ['ruby on rails']
 # Run the scraping process
-asyncio.run(scrape_keyword(keyword=keywords, multi_keyword=True))
+asyncio.run(job_miner_execute(keyword=keywords, multi_keyword=True))
 
