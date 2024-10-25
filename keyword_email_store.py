@@ -1,6 +1,8 @@
 import pickle
 import os
 from dashboard_function import make_dashboard
+import asyncio
+from miner_execute import job_miner_execute
 
 
 class manage_store_send_email:
@@ -110,7 +112,41 @@ def send_email_with_html(cls, html_content_list, keyword_list sender_info, recip
                 print(target_email)
                 smtp.sendmail(sender_email, target_email, html_message.as_string())
         smtp.quit()
+
+
+def run_job_miner():
+
+    for key, value in store.items():
+        keyword_list  = value["keywords"]
+        email_list    = value["email_list"]
+        html_content_list = fetch_and_save_reports(keyword=keyword_list, multi_keyword=True)
+        send_email
     
+    title = f"{keyword} Job Report"
+    
+def fetch_and_save_reports(keyword=keyword_list, allowed=["upwork"], ):
+    html_store = {}
+    for platform in allowed:
+        if platform == "upwork":
+            pass
+            asyncio.run(job_miner_execute(keyword=keyword_list, multi_keyword=True))
+            html_content_list =  [ reading_html(keyword, platform="upwork") for keyword in keyword_list ] 
+            return html_content_list 
+    pass    
+    
+def reading_html(keyword, platform="upwork"):
+
+    folder_path = f"{platform}_reports"
+    filename = f"Job_Mining_{keyword}.html"
+
+
+    if not os.path.exists(folder_path): os.makedirs(folder_path)
+    file_path = os.path.join(folder_path, filename)
+
+    with open(file_path, "r") as file: html_content = file.read()
+    # Start counter for potential duplicate file names
+
+    return html_content
     
 def saving_html(record_info, keyword):
 
@@ -119,22 +155,4 @@ def saving_html(record_info, keyword):
     #     pickle.dump(record_info, file)
 
 
-    html_content = make_dashboard(record_info, keyword)
-
-    folder_path = "reports"
-    filename = f"Job_Mining_{keyword}.html"
-
-    if not os.path.exists(folder_path): os.makedirs(folder_path)
-    file_path = os.path.join(folder_path, filename)
-
-    # Start counter for potential duplicate file names
-    counter = 1
-    file_root, file_extension = os.path.splitext(file_path)
-
-    # While loop to check if file exists, and increment counter if it does
-    while os.path.exists(file_path):
-        file_path = f"{file_root}_{counter}{file_extension}"
-        counter += 1
-
-    with open(file_path, "w") as file:
-        file.write(html_content)
+    
