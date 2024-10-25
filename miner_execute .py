@@ -11,6 +11,12 @@ import re
 def save_into_job_store():
     pass
 
+def create_job_store():
+
+    job_store = {}
+    
+    return job_store
+
 
 def filter_special_chars(input_string):
     # Define a regex pattern for allowed characters (letters, numbers, spaces, common punctuation)
@@ -38,6 +44,23 @@ def duplicate_files_fix(default_filename):
             counter += 1
         os.rename(default_filename, updated_path)
 
+def update_job_store(job_store, word):
+
+    if word not in job_store:
+        job_store[word] = {}
+        max_id = 0
+        pass
+
+    else : max_id = max(job_store[word].keys())
+
+    record_id = max_id + 1
+    # with open('job_store.bin', 'wb') as f:
+    #     dill.dump(job_store, f)
+
+    return job_store, record_id
+
+
+
 def job_store_save(job_store):
 
     df = pd.DataFrame.from_dict(job_store)
@@ -47,10 +70,10 @@ def job_store_save(job_store):
     df.to_csv(default_filename, index=False)
 
 
-def scrape_upwork_html(word, response):
+def scrape_upwork_html(job_store, word, response):
 
-
-    job_store = get_or_create_job_store()
+    
+    job_store, record_id = update_job_store(job_store, word)
 
     if word not in job_store:
         job_store[word] = {}
@@ -171,7 +194,7 @@ async def job_miner_execute(keyword, multi_keyword=False):
             # page4 = await browser.new_page()
             # page5 = await browser.new_page()
             # page_instance = [page1, page2, page3, page4, page5]
-
+            job_store = create_job_store()
 
             for i, word in enumerate(keyword):
                 target_url = f"https://www.upwork.com/nx/search/jobs/?q={word}"
