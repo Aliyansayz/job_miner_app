@@ -1,6 +1,6 @@
 import asyncio
 from bs4 import BeautifulSoup
-# import pandas as pd
+import pandas as pd
 import lxml , os, pickle
 import html5lib
 from playwright.async_api import async_playwright
@@ -21,17 +21,31 @@ def filter_special_chars(input_string):
 
     return filtered_string
 
-def get_or_create_job_store():
-    try:
-        with open('job_store.bin', 'r') as f:
-            job_store = pickle.load(f)
 
-    except:
-        job_store = {}
-        with open('job_store.bin', 'w') as f:
-            pickle.dump(job_store, f)
+def duplicate_files_fix(default_filename):
 
-    return job_store
+    counter = 1
+    frag = default_filename.split('.')
+    name = frag[0]
+    ext = frag[1]
+    if os.path.exists(default_filename):
+        updated_path = f"{name}_{counter}.{ext}"
+        # current_path = default_filename
+        while os.path.exists(updated_path):
+            # current_path = updated_path
+
+            updated_path = f"{name}_{counter}.{ext}"
+            counter += 1
+        os.rename(default_filename, updated_path)
+
+def job_store_save(job_store):
+
+    df = pd.DataFrame.from_dict(job_store)
+
+    # Save DataFrame to CSV
+    default_filename = 'job_store.csv'
+    df.to_csv(default_filename, index=False)
+
 
 def scrape_upwork_html(word, response):
 
