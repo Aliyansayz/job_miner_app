@@ -5,7 +5,7 @@ from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl, pyqtSlot
 from datetime import datetime, timedelta
 
-from keyword_email_store import manage_store_send_email
+from keyword_email_store import manage_store, run_agent_exceute
 
 
 class SidebarWidget(QWidget):
@@ -32,6 +32,7 @@ class SettingsWidget(QWidget):
 
         # Create Tab Widget
         self.tabs = QTabWidget()
+        self.handle_keywords =  manage_store()
         self.api_config_tab = self.create_api_config_tab()
         self.email_list_tab = self.create_email_list_tab()
         self.email_config_tab = self.create_email_config_tab()
@@ -45,6 +46,7 @@ class SettingsWidget(QWidget):
 
         # Add Tabs to the main layout
         layout.addWidget(self.tabs)
+
 
     def create_api_config_tab(self):
         tab = QWidget()
@@ -89,7 +91,8 @@ class SettingsWidget(QWidget):
         self.email_config_password_input = QLineEdit()
         layout.addWidget(self.email_config_password_input)
 
-        email, password = manage_store_send_email.get_email_config()
+
+        email, password = self.handle_keywords.get_email_config()
 
         self.email_config_input.setText(str(email))
         self.email_config_password_input.setText(str(password))
@@ -127,6 +130,7 @@ class SettingsWidget(QWidget):
         keywords_list = self.keyword_input.text()
 
         keywords_list = keywords_list.split(',')
+        email_list  = self.email_list_input.text().split(',')
         # keywords_list = eval(keywords_list)
 
         print(type(keywords_list))
@@ -148,6 +152,7 @@ class SettingsWidget(QWidget):
         self.edit_button = QPushButton('Edit Record')
         self.delete_button = QPushButton('Delete Record')
 
+        # self.add_button.clicked.connect()
         # Button layout
         button_layout = QHBoxLayout()
         button_layout.addWidget(self.add_button)
@@ -161,7 +166,6 @@ class SettingsWidget(QWidget):
 
 
         # Button signals
-        self.add_button.clicked.connect(self.save_keywords)
         # self.edit_button.clicked.connect(self.edit_row)
         # self.delete_button.clicked.connect(self.delete_row)
         #
@@ -179,7 +183,7 @@ class SettingsWidget(QWidget):
         email = self.email_config_input.text()
         password = self.email_config_password_input.text()
 
-        manage_store_send_email.update_email_config(email, password)
+        self.handle_keywords.update_email_config(email, password)
 
     def save_keywords(self):
         """Save or update the input keywords and emails into the table with auto-incrementing or current ID."""
@@ -194,19 +198,21 @@ class SettingsWidget(QWidget):
             print("Please enter both keywords and email list.")
             return
 
-        store , max_id = manage_store_send_email.get_keyword_email_store()
+        store , max_id = self.handle_keywords.get_keyword_email_store()
 
+        if max_id is not None: self.current_id = max_id + 1
+        else: self.current_id = 1
 
-
-        if max_id is not None:
-            self.current_id += max_id
-            self.add_record(self.current_id, keywords_list, email_list)
+        self.add_record(self.current_id, keywords_list, email_list)
 
 
         print(f"Keywords: {keywords_list}, Emails: {email_list} saved.")
 
+
     def add_record(self, id_value, keywords, emails):
         """Add a row with the given ID, keywords, and emails to the table."""
+        # self.save_keywords()
+
         row_position = self.table.rowCount()
         self.table.insertRow(row_position)
 
@@ -299,9 +305,11 @@ class DashboardLogic:
         :param current_type_index: Index of the current job type in the pagination.
         :return: HTML string with job details and pagination controls.
         """
+        current_job_type = "Python"
         #job_types = list(jobs_dict.keys())
-        current_job_type = job_types[current_type_index]
-        jobs = jobs_dict[current_job_type]
+        # current_type_index = 0
+        # current_job_type = job_types[current_type_index]
+        # jobs = jobs_dict[current_job_type]
 
         head = f'''
             <!DOCTYPE html>
@@ -413,7 +421,7 @@ class DashboardLogic:
         '''
 
         job_items = ''
-
+        jobs = {}
         # Generate job listings for the current job type
         for job_id, job_info in jobs.items():
             job_price = job_info.get('value', 'N/A')
@@ -441,17 +449,17 @@ class DashboardLogic:
             <div class="pagination">
         '''
 
-        if current_type_index > 0:
-            pagination += f'<button onclick="window.location.href=\'/previous?index={current_type_index - 1}\'">Previous</button>'
-        else:
-            pagination += '<button disabled>Previous</button>'
-
-        if current_type_index < len(job_types) - 1:
-            pagination += f'<button onclick="window.location.href=\'/next?index={current_type_index + 1}\'">Next</button>'
-        else:
-            pagination += '<button disabled>Next</button>'
-
-        pagination += '</div>'
+        # if current_type_index > 0:
+        #     pagination += f'<button onclick="window.location.href=\'/previous?index={current_type_index - 1}\'">Previous</button>'
+        # else:
+        #     pagination += '<button disabled>Previous</button>'
+        #
+        # if current_type_index < len(job_types) - 1:
+        #     pagination += f'<button onclick="window.location.href=\'/next?index={current_type_index + 1}\'">Next</button>'
+        # else:
+        #     pagination += '<button disabled>Next</button>'
+        #
+        # pagination += '</div>'
 
         footer = '''
                 <div class="footer">
@@ -462,7 +470,7 @@ class DashboardLogic:
         </html>
         '''
 
-        whole_html = head + job_items + pagination + footer
+        whole_html = head + job_items + "pagination" + footer
         return whole_html
 
 
@@ -490,6 +498,9 @@ class DashboardWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Asset Dashboard With Sidebar Settings")
         self.setGeometry(100, 100, 1200, 800)
+
+        self.handle_keywords = manage_store()
+
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -521,6 +532,7 @@ class DashboardWindow(QMainWindow):
         self.settings_widget.save_email_list_btn.clicked.connect(self.save_email_list) # and button method connect -> to function that runs
         self.settings_widget.save_email_config_btn.clicked.connect(self.save_email_config)
         self.settings_widget.save_keyword_btn.clicked.connect(self.save_keywords_list)
+        self.retrieve_record()
 
         # Initial load of the dashboard
         self.dashboard_widget.load_dashboard()
@@ -557,24 +569,72 @@ class DashboardWindow(QMainWindow):
         password = self.settings_widget.password_input.text()
         print(f"Email config saved: {smtp}, {port}, {username}, {password}")
 
-
-
     def save_keywords_list(self):
-        
-        keywords_list = self.settings_widget.keyword_input.text()
-        
-        self.settings_widget.table
+        """Save or update the input keywords and emails into the table with auto-incrementing or current ID."""
 
-        # keywords_list = self.keyword_input.text()
-        keywords_list = keywords_list.split(',')
+        if ',' in self.settings_widget.keyword_input.text():  keywords_list = self.settings_widget.keyword_input.text().split(',')
+        else : keywords_list = list(self.settings_widget.keyword_input.text())
 
-        print(f"License Key saved: {keywords_list}")
-        email_list = self.settings_widget.email_list_input.text()
+        if ',' in self.settings_widget.email_list_input.text():  email_list = self.settings_widget.email_list_input.text().split(',')
+        else:  email_list = list(self.settings_widget.email_list_input.text())
+
+        if not keywords_list or not email_list:
+            print("Please enter both keywords and email list.")
+            return
+
+        print(f"Keyword saved: {keywords_list}")
+
         print(f"Email list saved: {email_list}")
 
+        store , max_id = self.handle_keywords.get_keyword_email_store()
+
+        if max_id is not None: current_id = max_id + 1
+        else: current_id = 1
+
+        store[current_id] = {"keywords": keywords_list, "email_list": email_list}
+        self.handle_keywords.push_into_keyword_email_store(store)
+        # self.settings_widget.table
+        self.add_record(current_id, keywords_list, email_list)
+        print(f"Keywords: {keywords_list}, Emails: {email_list} saved.")
+
+    # def save_keywords_list(self):
+    #
+    #     keywords_list = self.settings_widget.keyword_input.text()
+    #
+    #     self.settings_widget.table
+    #
+    #     # keywords_list = self.keyword_input.text()
+    #     keywords_list = keywords_list.split(',')
+    #
+    #     print(f"License Key saved: {keywords_list}")
+    #     email_list = self.settings_widget.email_list_input.text()
+    #     print(f"Email list saved: {email_list}")
+
+    def retrieve_record(self):
+
+        store, max_id = self.handle_keywords.get_keyword_email_store()
+        print("Store record", store)
+        for i in range(1, max_id+1):
+            pass
+            keywords = store[i]["keywords"]
+            emails   = store[i]["email_list"]
+            self.add_record(i, keywords, emails)
+
+    def add_record(self, id_value, keywords, emails):
+        """Add a row with the given ID, keywords, and emails to the table."""
+        # self.save_keywords()
+
+        row_position = self.settings_widget.table.rowCount()
+        self.settings_widget.table.insertRow(row_position)
+
+        self.settings_widget.table.setItem(row_position, 0, QTableWidgetItem(str(id_value)))
+        self.settings_widget.table.setItem(row_position, 1, QTableWidgetItem(', '.join(keywords)))
+        self.settings_widget.table.setItem(row_position, 2, QTableWidgetItem(emails))
+
     def run_agent(self):
-
-
+        executor = run_agent_exceute()
+        executor.run_job_miner()
+        
         pass
 
 
