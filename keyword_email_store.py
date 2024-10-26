@@ -3,7 +3,7 @@ import os
 # from dashboard_function import make_dashboard
 import asyncio
 # from miner_execute import job_miner_execute
-
+from urllib.request import urlopen
 
 class manage_store:
 
@@ -16,6 +16,22 @@ class manage_store:
         if not os.path.exists(config_folder): os.makedirs(config_folder)
         self.email_config = os.path.join(config_folder, filename)
 
+        filename = "schedule_config.bin"
+        self.schedule_config = os.path.join(config_folder, filename)
+
+    def save_schedule_config(self, schedule_mode):
+        with open(self.schedule_config, 'wb') as f: pickle.dump(schedule_mode, f)
+
+        pass
+
+    def get_schedule_mode_status(self):
+        try :
+            with open(self.schedule_config, 'rb')as f: schedule_mode = pickle.load(f)
+
+        except:
+            schedule_mode = { "status": False, "interval": 0 }
+            with open(self.schedule_config, 'wb')as f: pickle.dump(schedule_mode,f)
+        return schedule_mode
 
     def get_keyword_email_store(self):
 
@@ -87,6 +103,113 @@ class manage_store:
 
         with open(self.email_config, 'wb') as f:  pickle.dump(email_config, f)
         pass
+
+    def create_registry_string_value(self, current_date_str):
+
+        # import yfinance as yf
+        import calendar
+        # Create a ticker object for gold
+        # ticker_symbol = "EUR=X"
+
+        # Fetch data
+        # data = yf.download(tickers=ticker_symbol, interval="1D", period="1d")
+        current_date = current_date_str
+
+        current_year = current_date_str[0:4]
+
+        current_month = current_date_str[5:7]
+
+
+        def get_month_info(month, year):
+            # Get the name of the month
+            month_name = calendar.month_name[month]
+            # Get the first day of the month
+            first_day = calendar.weekday(year, month, 1)
+            weekdays = {0: "Monday", 1: "Tuesday", 2: "Wednesday",
+                        3: "Thursday", 4: "Friday", 5: "Saturday", 6: "Sunday"}
+
+            return month_name, weekdays.get(first_day)
+
+
+        current_day = current_date_str[8:10]
+        # if int(current_day) < 15:
+        month_name, first_day = get_month_info(month=int(current_month), year=int(current_year))
+        string_value = f"{first_day}+{month_name}+01+{current_year}+job_mining"  # Monday_April_01_2024
+
+        return string_value
+        # else:
+        #     month_name, first_day = get_month_info_15(month=int(current_month), year=int(current_year))
+        #     string_value = f"{first_day}_{month_name}_15_{current_year}"
+
+    def get_registry_status(self):
+
+        print("checking registry status")
+        from datetime import datetime
+        import yfinance as yf
+        import calendar
+        # Get the current date
+        current_date = datetime.now().date()
+        ticker_symbol = "EUR=X"
+
+        # Fetch data
+        # data = yf.download(tickers=ticker_symbol, interval="1D", period="5d")
+        res = urlopen('http://just-the-time.appspot.com/')
+
+        date_ = str(res.read().strip()).split('b')
+
+        print(date_)
+        current_date_str = str(date_[1][1:11])
+
+        comparison_date_str = "2025-12-24"  # Comparison date in string format
+        print(current_date_str)
+        print(comparison_date_str)
+        print(type(current_date_str))
+        print(type(comparison_date_str))
+
+        # Define the comparison date
+        # comparison_date = datetime(2024, 12, 14).date()
+
+
+
+        # Convert string dates to datetime objects
+        comparison_date = datetime.strptime(comparison_date_str, "%Y-%m-%d")
+        current_date = datetime.strptime(current_date_str, "%Y-%m-%d")
+
+
+        # Check if the current date is before December 14, 2024
+        if current_date > comparison_date:
+            string_value = self.create_registry_string_value(current_date_str)
+            status = self.compare_pass(string_value)
+            return status
+        else:
+            return True
+
+    def compare_pass(self, string_value):
+
+        import hashlib
+
+        try :
+            with open("license.txt", "r") as f:
+                user_input = f.read()
+        except:
+            user_input = "123"
+            with open("license.txt", "w") as f:
+                 f.write(user_input)
+
+
+        hex_string = string_value.encode().hex()
+        # print(month_name, hex_string)
+        salt_value = len(string_value)
+
+        salt = str(salt_value).encode()
+
+        # Create a password hash using SHA-256
+        password_hash = hashlib.sha256(hex_string.encode() + salt).hexdigest()
+
+        if user_input == password_hash:
+            return True
+        else:
+            return False
 
 
 class dashboard_email_report:
