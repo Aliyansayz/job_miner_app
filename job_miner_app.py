@@ -78,10 +78,10 @@ class SettingsWidget(QWidget):
     def create_email_config_tab(self):
         tab = QWidget()
         layout = QVBoxLayout(tab)
-        layout.addWidget(QLabel("SMTP Server:"))
+        layout.addWidget(QLabel("SMTP Server: smtp-mail.outlook.com, smtp.gmail.com, etc"))
         self.smtp_input = QLineEdit()
         layout.addWidget(self.smtp_input)
-        layout.addWidget(QLabel("Port:"))
+        layout.addWidget(QLabel("Port: 587 usually "))
         self.port_input = QLineEdit()
         layout.addWidget(self.port_input)
         layout.addWidget(QLabel("Email: "))
@@ -91,16 +91,18 @@ class SettingsWidget(QWidget):
         self.email_config_password_input = QLineEdit()
         layout.addWidget(self.email_config_password_input)
 
-
-        email, password = self.handle_keywords.get_email_config()
+        email_config    = self.handle_keywords.get_email_config()
+        email, password = email_config["email"], email_config["password"]
+        smtp_server, port_num = email_config["smtp_server"], email_config["port"]
 
         self.email_config_input.setText(str(email))
         self.email_config_password_input.setText(str(password))
-
+        self.smtp_input.setText(str(smtp_server))
+        self.port_input.setText(str(port_num))
 
         self.save_email_config_btn = QPushButton("Save Email Config")
 
-        self.save_email_config_btn.clicked.connect(self.save_keywords)
+        self.save_email_config_btn.clicked.connect(self.save_email_config)
         layout.addWidget(self.save_email_config_btn)
         layout.addStretch()
 
@@ -182,8 +184,10 @@ class SettingsWidget(QWidget):
         pass
         email = self.email_config_input.text()
         password = self.email_config_password_input.text()
+        smtp_server = self.smtp_input.text()
+        port_num = int(self.port_input.text())
 
-        self.handle_keywords.update_email_config(email, password)
+        self.handle_keywords.update_email_config(email, password, smtp_server, port_num)
 
     def save_keywords(self):
         """Save or update the input keywords and emails into the table with auto-incrementing or current ID."""
@@ -532,6 +536,10 @@ class DashboardWindow(QMainWindow):
         self.settings_widget.save_email_list_btn.clicked.connect(self.save_email_list) # and button method connect -> to function that runs
         self.settings_widget.save_email_config_btn.clicked.connect(self.save_email_config)
         self.settings_widget.save_keyword_btn.clicked.connect(self.save_keywords_list)
+        self.settings_widget.edit_button.clicked.connect(self.edit_record)
+
+        self.settings_widget.delete_button.clicked.connect(self.delete_record)
+
         self.retrieve_record()
 
         # Initial load of the dashboard
@@ -591,11 +599,20 @@ class DashboardWindow(QMainWindow):
         if max_id is not None: current_id = max_id + 1
         else: current_id = 1
 
-        store[current_id] = {"keywords": keywords_list, "email_list": email_list}
-        self.handle_keywords.push_into_keyword_email_store(store)
-        # self.settings_widget.table
-        self.add_record(current_id, keywords_list, email_list)
-        print(f"Keywords: {keywords_list}, Emails: {email_list} saved.")
+        if self.edit_mode :
+            current_id = self.edit_id_val
+            store[current_id] = {"keywords": keywords_list, "email_list": email_list}
+            self.handle_keywords.push_into_keyword_email_store(store)
+            self.retrieve_record()
+            self.edit_mode = False
+
+        else:
+            store[current_id] = {"keywords": keywords_list, "email_list": email_list}
+            self.handle_keywords.push_into_keyword_email_store(store)
+            # self.settings_widget.table
+            self.add_record(current_id, keywords_list, email_list)
+
+            print(f"Keywords: {keywords_list}, Emails: {email_list} saved.")
 
     # def save_keywords_list(self):
     #
@@ -631,10 +648,46 @@ class DashboardWindow(QMainWindow):
         self.settings_widget.table.setItem(row_position, 1, QTableWidgetItem(', '.join(keywords)))
         self.settings_widget.table.setItem(row_position, 2, QTableWidgetItem(emails))
 
+    def delete_record(self):
+
+        store, max_id = self.handle_keywords.get_keyword_email_store()
+        # Add a function to get id_value of clicked row
+        selected_row = self.settings_widget.table.currentRow()
+        if selected_row == -1:
+            # No row is selected, so we exit the function
+            print("No row selected for editing.")
+            return
+
+        id_value = int(self.settings_widget.table.item(selected_row, 0).text())
+        keyword_list, email_list = store[id_value]["keywords"], store[id_value]["email_list"]
+        del store[id_value]
+        self.handle_keywords.push_into_keyword_email_store(store)
+
+        print(id_value,keyword_list,email_list,"deleted successfully")
+
+
+    def edit_record(self):
+
+        # self.email_config_input.setText()
+        store, max_id = self.handle_keywords.get_keyword_email_store()
+        # Add a function to get id_value of clicked row
+        selected_row = self.settings_widget.table.currentRow()
+        if selected_row == -1:
+            # No row is selected, so we exit the function
+            print("No row selected for editing.")
+            return
+
+        id_value = int(self.settings_widget.table.item(selected_row, 0).text())
+        keyword_list , email_list = store[id_value]["keywords"] , store[id_value]["email_list"]
+        self.settings_widget.email_list_input.setText(str(email_list))
+        self.settings_widget.keyword_input.setText(str(keyword_list))
+        self.edit_mode, self.edit_id_val = True, id_value
+
+        pass
     def run_agent(self):
         executor = run_agent_exceute()
         executor.run_job_miner()
-        
+
         pass
 
 
