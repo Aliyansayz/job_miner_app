@@ -12,7 +12,7 @@ class manage_store:
         if not os.path.exists(folder_path): os.makedirs(folder_path)
         self.file_path = os.path.join(folder_path, filename)
 
-        config_folder, filename = "config", "email_config.bin.bin"
+        config_folder, filename = "config", "email_config.bin"
         if not os.path.exists(config_folder): os.makedirs(config_folder)
         self.email_config = os.path.join(config_folder, filename)
 
@@ -63,30 +63,29 @@ class manage_store:
 
         try:
             pass
-            with open(self.email_config, 'rb+') as f:
+            with open(self.email_config, 'rb') as f:
                 email_config = pickle.load(f)
 
         except:
             email_config = {"email": "", "password": "", "smtp_server":"", "port": ""}
 
-            with open(self.email_config, 'wb+') as f:
+            with open(self.email_config, 'wb') as f:
                 pickle.dump(email_config, f)
 
-        email    = email_config["email"]
-        password = email_config["password"]
 
-        return email, password
+
+        return email_config
 
     def update_email_config(self, email, password, smtp_server, port):
 
-        with open('email_config.bin', 'r') as f:  email_config = pickle.load(f)
+        with open(self.email_config, 'rb') as f:  email_config = pickle.load(f)
 
         email_config["email"] = email
         email_config["password"] = password
         email_config["smtp_server"] = smtp_server
         email_config["port"] = port
 
-        with open('email_config.bin', 'wb+') as f:  pickle.dump(email_config, f)
+        with open(self.email_config, 'wb') as f:  pickle.dump(email_config, f)
         pass
 
 
@@ -170,9 +169,9 @@ class run_agent_exceute(manage_store):
         if not isinstance(recipient_email_list, list): recipient_email_list = [recipient_email_list]
 
         # html_message['From'] = sender_email
-        smtp_server
-        port_num
-        smtp = smtplib.SMTP("smtp-mail.outlook.com", port=587)
+        # smtp_server
+        # port_num
+        smtp = smtplib.SMTP(f"{smtp_server}", port=port_num) # port_num smtp_server
         smtp.starttls()
         smtp.login(sender_email, sender_password)
         for target_email in recipient_email_list: # for person A , one keyword jobs then second keyword job report will be emailed
