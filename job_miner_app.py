@@ -102,7 +102,7 @@ class SettingsWidget(QWidget):
 
         self.save_email_config_btn = QPushButton("Save Email Config")
 
-        self.save_email_config_btn.clicked.connect(self.save_email_config)
+        # self.save_email_config_btn.clicked.connect(self.save_email_config)
         layout.addWidget(self.save_email_config_btn)
         layout.addStretch()
 
@@ -122,10 +122,7 @@ class SettingsWidget(QWidget):
 
         layout.addWidget(self.email_list_input)
 
-        try :
-            # find a file if there is any list
-            pass
-        except: pass
+
 
         # self.keyword_input.setText("A,B,C,D")
 
@@ -161,10 +158,11 @@ class SettingsWidget(QWidget):
         button_layout.addWidget(self.edit_button)
         button_layout.addWidget(self.delete_button)
 
-
         layout.addWidget(self.table)
         layout.addLayout(button_layout)
+        layout.addStretch()
 
+        return tab
 
 
         # Button signals
@@ -175,19 +173,17 @@ class SettingsWidget(QWidget):
         # self.add_table_data("Jane Smith", "25", "Designer")
 
 
-        layout.addStretch()
 
-        return tab
 
-    def save_email_config(self):
-
-        pass
-        email = self.email_config_input.text()
-        password = self.email_config_password_input.text()
-        smtp_server = self.smtp_input.text()
-        port_num = int(self.port_input.text())
-
-        self.handle_keywords.update_email_config(email, password, smtp_server, port_num)
+    # def save_email_config(self):
+    #
+    #     pass
+    #     email = self.email_config_input.text()
+    #     password = self.email_config_password_input.text()
+    #     smtp_server = self.smtp_input.text()
+    #     port_num = int(self.port_input.text())
+    #
+    #     self.handle_keywords.update_email_config(email, password, smtp_server, port_num)
 
     def save_keywords(self):
         """Save or update the input keywords and emails into the table with auto-incrementing or current ID."""
@@ -246,61 +242,11 @@ class SettingsWidget(QWidget):
 class DashboardLogic:
     @staticmethod
     def generate_dashboard_html(timeframe, updated=False):
-        tf = timeframe
-        tz = "GMT"
-        current_time = datetime.utcnow()
 
-        if updated:
-            assets_dict = {
-                "BTC/USD": {
-                    "action": "buy",
-                    "timeframe": tf,
-                    "datetime": (current_time + timedelta(minutes=15)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "strategy": "Moving Average Crossover",
-                    "take_profit": "45000",
-                    "stop_loss": "40000"
-                },
-                "ETH/USD": {
-                    "action": "sell",
-                    "timeframe": tf,
-                    "datetime": (current_time + timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "strategy": "RSI Overbought",
-                    "take_profit": "2800",
-                    "stop_loss": "3200"
-                },
-                "XRP/USD": {
-                    "action": "buy",
-                    "timeframe": tf,
-                    "datetime": (current_time + timedelta(minutes=45)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "strategy": "Support Bounce",
-                    "take_profit": "0.65",
-                    "stop_loss": "0.55"
-                }
-            }
-        else:
-            assets_dict = {
-                "BTC/USD": {
-                    "action": "sell",
-                    "timeframe": tf,
-                    "datetime": current_time.strftime("%Y-%m-%d %H:%M:%S"),
-                    "strategy": "Resistance Rejection",
-                    "take_profit": "38000",
-                    "stop_loss": "42000"
-                },
-                "ETH/USD": {
-                    "action": "buy",
-                    "timeframe": tf,
-                    "datetime": (current_time + timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M:%S"),
-                    "strategy": "Golden Cross",
-                    "take_profit": "3500",
-                    "stop_loss": "3000"
-                }
-            }
-
-        return DashboardLogic.generate_html(assets_dict, tf, tz)
+        return DashboardLogic.generate_html()
 
     @staticmethod
-    def generate_html(jobs_dict, job_types, current_type_index):
+    def generate_html():
         """
         Generates an HTML string for the Job Mining Dashboard with pagination for job types.
 
@@ -539,6 +485,8 @@ class DashboardWindow(QMainWindow):
         self.settings_widget.edit_button.clicked.connect(self.edit_record)
 
         self.settings_widget.delete_button.clicked.connect(self.delete_record)
+        # self.settings_widget.save_email_config_btn.clicked.connect(self.save_email_config)
+
 
         self.retrieve_record()
 
@@ -570,12 +518,7 @@ class DashboardWindow(QMainWindow):
         email_list = self.settings_widget.email_list_input.text()
         print(f"Email list saved: {email_list}")
 
-    def save_email_config(self):
-        smtp = self.settings_widget.smtp_input.text()
-        port = self.settings_widget.port_input.text()
-        username = self.settings_widget.username_input.text()
-        password = self.settings_widget.password_input.text()
-        print(f"Email config saved: {smtp}, {port}, {username}, {password}")
+
 
     def save_keywords_list(self):
         """Save or update the input keywords and emails into the table with auto-incrementing or current ID."""
@@ -630,7 +573,7 @@ class DashboardWindow(QMainWindow):
     def retrieve_record(self):
 
         store, max_id = self.handle_keywords.get_keyword_email_store()
-        print("Store record", store)
+        # print("Store record", store)
         for i in range(1, max_id+1):
             pass
             keywords = store[i]["keywords"]
@@ -695,6 +638,16 @@ class DashboardWindow(QMainWindow):
         # Placeholder function for getting market daily status
         pass
 
+    def save_email_config(self):
+
+        pass
+        email = self.settings_widget.email_config_input.text()
+        password = self.settings_widget.email_config_password_input.text()
+        smtp_server =  self.settings_widget.smtp_input.text()
+        port_num = int(self.settings_widget.port_input.text())
+
+        self.handle_keywords.update_email_config(email, password, smtp_server, port_num)
+        print("Successfully updated email configuarations. ")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -702,3 +655,4 @@ if __name__ == '__main__':
     window = DashboardWindow()
     window.show()
     sys.exit(app.exec())
+
