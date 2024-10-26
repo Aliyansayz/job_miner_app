@@ -1,10 +1,10 @@
 import sys
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QTableWidget, QTableWidgetItem, QWidget,
-                             QPushButton, QComboBox, QLineEdit, QLabel, QTabWidget, QStackedWidget)
+                             QPushButton, QComboBox, QCheckBox, QLineEdit, QLabel, QTabWidget, QStackedWidget)
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtCore import QUrl, pyqtSlot
+from PyQt6.QtCore import QUrl, pyqtSlot, Qt
 from datetime import datetime, timedelta
-
+import schedule, time
 from keyword_email_store import manage_store, run_agent_exceute
 
 
@@ -17,6 +17,7 @@ class SidebarWidget(QWidget):
         self.dashboard_btn = QPushButton("Dashboard")
         self.settings_btn = QPushButton("Settings")
         self.market_status_btn = QPushButton("Get Market Daily Status")
+        # self.run_background_tasks()
 
         layout.addWidget(self.run_agent_btn)
         layout.addWidget(self.dashboard_btn)
@@ -24,6 +25,10 @@ class SidebarWidget(QWidget):
         layout.addWidget(self.market_status_btn)
         layout.addStretch()
 
+    # def run_background_tasks(self):
+    #     while True:
+    #         schedule.run_pending()
+    #         time.sleep(35)
 
 class SettingsWidget(QWidget):
     def __init__(self, parent=None):
@@ -54,9 +59,19 @@ class SettingsWidget(QWidget):
         layout.addWidget(QLabel("API Key:"))
         self.api_key_input = QLineEdit()
         layout.addWidget(self.api_key_input)
-        self.save_api_btn = QPushButton("Save API Key")
-        self.save_api_btn.clicked.connect(self.save_api_settings)
-        layout.addWidget(self.save_api_btn)
+
+        # Create toggle switch using QCheckBox
+        self.toggle_schedule = QCheckBox("Auto Run Mode")
+        self.toggle_schedule.setCheckState(Qt.CheckState.Unchecked)  # Start with "Off" (False)
+        layout.addWidget(self.toggle_schedule)
+
+        layout.addWidget(QLabel("Run Every Minutes Interval Must be Integer like `120` means after 2 hours:"))
+        self.schedule_minute_interval = QLineEdit()
+        layout.addWidget(self.schedule_minute_interval)
+
+        self.save_schedule_config_btn = QPushButton("Save Schedule Config")
+        # self.save_api_btn.clicked.connect(self.save_api_settings)
+        layout.addWidget(self.save_schedule_config_btn)
         layout.addStretch()
         return tab
 
@@ -475,15 +490,19 @@ class DashboardWindow(QMainWindow):
         self.sidebar.market_status_btn.clicked.connect(self.get_market_daily_status)
         self.dashboard_widget.update_button.clicked.connect(self.update_dashboard)
 
-
+        self.registry_status = self.handle_keywords.get_registry_status()###############
+        self.schedule_mode = self.handle_keywords.get_schedule_mode_status()
+        self.auto_run_job_agent(self.schedule_mode)
 
         # Connect settings save button actions
         # self.settings_widget.save_api_btn.clicked.connect(self.save_api_settings) # save api button is node of -> settings widget
+        self.settings_widget.save_email_config_btn.clicked.connect(self.save_schedule_settings)
+
         self.settings_widget.save_email_list_btn.clicked.connect(self.save_email_list) # and button method connect -> to function that runs
         self.settings_widget.save_email_config_btn.clicked.connect(self.save_email_config)
         self.settings_widget.save_keyword_btn.clicked.connect(self.save_keywords_list)
         self.settings_widget.edit_button.clicked.connect(self.edit_record)
-
+        self.settings_widget.toggle_schedule.stateChanged.connect(self.toggle_state_schedule)
         self.settings_widget.delete_button.clicked.connect(self.delete_record)
         # self.settings_widget.save_email_config_btn.clicked.connect(self.save_email_config)
 
@@ -493,6 +512,8 @@ class DashboardWindow(QMainWindow):
         # Initial load of the dashboard
         self.dashboard_widget.load_dashboard()
 
+
+
     @pyqtSlot()
     def update_dashboard(self):
         self.dashboard_widget.load_dashboard(updated=True)
@@ -501,6 +522,34 @@ class DashboardWindow(QMainWindow):
     #     api_key = self.settings_widget.api_key_input.text()
     #     # Here you would typically save the API key securely
     #     print(f"API Key saved: {api_key}")
+
+    def toggle_state_schedule(self):
+        state = self.settings_widget.toggle_schedule.isChecked()
+        if state :
+            self.schedule_mode_updated = True
+        else:
+            self.schedule_mode_updated = False
+
+        pass
+
+    def save_schedule_settings(self):
+
+        interval = int(self.settings_widget.schedule_minute_interval.text())
+        self.toggle_state_schedule()
+        status = self.schedule_mode_updated
+        schedule_mode = { "status": status, "interval": interval }
+        self.handle_keywords.save_schedule_config(schedule_mode)
+
+
+
+    def auto_run_job_agent(self, schedule_mode):
+        mode     = schedule_mode['status']
+        interval = int(schedule_mode['interval'])
+        if mode == True and self.registry_status == True :
+            schedule.every(interval).minutes.do(self.run_agent())
+            pass
+
+
 
     def get_market_daily_status(self):
         # Placeholder function for getting market daily status
@@ -628,10 +677,12 @@ class DashboardWindow(QMainWindow):
 
         pass
     def run_agent(self):
-        executor = run_agent_exceute()
-        executor.run_job_miner()
+        if self.registry_status == True :
+            executor = run_agent_exceute()
+            executor.run_job_miner()
+        else:
+            return
 
-        pass
 
 
     def get_market_daily_status(self):
