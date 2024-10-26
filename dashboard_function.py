@@ -1,4 +1,7 @@
-def make_dashboard(jobs_dict, job_type=""):
+import  os
+
+
+def generate_html(jobs_dict, job_type=""):
     """
     Generates an HTML string for the Job Mining Dashboard.
 
@@ -116,7 +119,7 @@ def make_dashboard(jobs_dict, job_type=""):
 
         job_posted = job_info.get('posted', 'N/A')
         if job_posted not in ['minutes', 'hours', 'hour', 'minute'] :
-                continue
+                continue # check for next job and dont add this.
 
         job_price = job_info.get('value', 'N/A')
         job_type  = job_info.get('type', 'N/A')
@@ -136,7 +139,7 @@ def make_dashboard(jobs_dict, job_type=""):
                 <div class="content" id="{job_title}_desc">{job_description}</div>
 
                 <button class="collapsible" onclick="toggleContent('{job_title}_proposal')">Job Proposal</button>
-                <div class="content" id="{job_title}_proposal">{job_proposal}</div>
+                <div class="content" id="{job_title}_posted">{job_posted}</div>
             </div>
         '''
 
@@ -151,3 +154,68 @@ def make_dashboard(jobs_dict, job_type=""):
 
     whole_html = head + job_items + footer
     return whole_html
+
+def duplicate_files_fix(default_filename ):
+
+    counter = 1
+    frag = default_filename.split('.')
+    name = frag[0]
+    ext = frag[1]
+
+    if os.path.exists(default_filename):
+        updated_path = f"{name}_{counter}.{ext}"
+        # current_path = default_filename
+        while os.path.exists(updated_path):
+            # current_path = updated_path
+            counter += 1
+            updated_path = f"{name}_{counter}.{ext}"
+
+        os.rename(default_filename, updated_path)
+
+
+def reading_html(keyword):
+
+    folder_path = "reports"
+    filename = f"Job_Mining_{keyword}.html"
+
+
+    if not os.path.exists(folder_path): os.makedirs(folder_path)
+    file_path = os.path.join(folder_path, filename)
+
+    with open(file_path, "r") as file: html_content = file.read()
+    # Start counter for potential duplicate file names
+
+    return html_content
+
+
+def saving_html(record_info, keyword, platform=None):
+
+    # import pickle
+    # with open(f"record_{keyword}.txt", 'w') as file:
+    #     pickle.dump(record_info, file)
+
+
+    html_content = generate_html(record_info, keyword)
+
+    folder_path = "reports"
+    if platform != None:
+        folder_path = f"{str(platform).lower()}_reports"
+
+    filename = f"Job_Mining_{keyword}.html"
+
+    if not os.path.exists(folder_path): os.makedirs(folder_path)
+    file_path = os.path.join(folder_path, filename)
+
+    duplicate_files_fix(file_path)
+    with open(file_path, "wb") as file:
+        file.write(html_content)
+    # Start counter for potential duplicate file names
+    # counter = 1
+    # file_root, file_extension = os.path.splitext(file_path)
+    #
+    # # While loop to check if file exists, and increment counter if it does
+    # while os.path.exists(file_path):
+    #     file_path = f"{file_root}_{counter}{file_extension}"
+    #     counter += 1
+
+
