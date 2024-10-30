@@ -1,4 +1,4 @@
-import pickle
+import pickle, json
 import os
 # from dashboard_function import make_dashboard
 import asyncio
@@ -41,12 +41,12 @@ class manage_store:
         #
         try:
             pass
-            with open(self.file_path, 'rb+') as f:
+            with open(self.file_path, 'rb') as f:
                 store = pickle.load(f)
 
         except:
             store = {}
-            with open(self.file_path, 'wb+') as f:
+            with open(self.file_path, 'wb') as f:
                 pickle.dump(store, f)
             # store[1] = { "keywords": [], "email_list": [] }
             pass
@@ -57,7 +57,7 @@ class manage_store:
             max_id = max(store.keys())
 
         print(store)
-
+        print(max_id)
         return store, max_id
 
     def push_into_keyword_email_store(self, store):
@@ -68,7 +68,7 @@ class manage_store:
 
         # store[1] = {"keywords": [], "email_list": []}
 
-        with open(self.file_path, 'wb+') as f:
+        with open(self.file_path, 'wb') as f:
             pickle.dump(store, f)
 
         # record = { 'keywords': [vd], 'emails': [dzv] }
