@@ -199,41 +199,41 @@ class SettingsWidget(QWidget):
     #     port_num = int(self.port_input.text())
     #
     #     self.handle_keywords.update_email_config(email, password, smtp_server, port_num)
+    #
+    # def save_keywords(self):
+    #     """Save or update the input keywords and emails into the table with auto-incrementing or current ID."""
+    #
+    #     if ',' in self.keyword_input.text():  keywords_list = self.keyword_input.text().split(',')
+    #     else : keywords_list = list(self.keyword_input.text())
+    #
+    #     if ',' in self.email_list_input.text():  email_list = self.email_list_input.text().split(',')
+    #     else:  email_list = list(self.keyword_input.text())
+    #
+    #     if not keywords_list or not email_list:
+    #         print("Please enter both keywords and email list.")
+    #         return
+    #
+    #     store , max_id = self.handle_keywords.get_keyword_email_store()
+    #
+    #     if max_id is not None: self.current_id = max_id + 1
+    #     else: self.current_id = 1
+    #
+    #     self.add_record(self.current_id, keywords_list, email_list)
+    #
+    #
+    #     print(f"Keywords: {keywords_list}, Emails: {email_list} saved.")
 
-    def save_keywords(self):
-        """Save or update the input keywords and emails into the table with auto-incrementing or current ID."""
 
-        if ',' in self.keyword_input.text():  keywords_list = self.keyword_input.text().split(',')
-        else : keywords_list = list(self.keyword_input.text())
-
-        if ',' in self.email_list_input.text():  email_list = self.email_list_input.text().split(',')
-        else:  email_list = list(self.keyword_input.text())
-
-        if not keywords_list or not email_list:
-            print("Please enter both keywords and email list.")
-            return
-
-        store , max_id = self.handle_keywords.get_keyword_email_store()
-
-        if max_id is not None: self.current_id = max_id + 1
-        else: self.current_id = 1
-
-        self.add_record(self.current_id, keywords_list, email_list)
-
-
-        print(f"Keywords: {keywords_list}, Emails: {email_list} saved.")
-
-
-    def add_record(self, id_value, keywords, emails):
-        """Add a row with the given ID, keywords, and emails to the table."""
-        # self.save_keywords()
-
-        row_position = self.table.rowCount()
-        self.table.insertRow(row_position)
-
-        self.table.setItem(row_position, 0, QTableWidgetItem(str(id_value)))
-        self.table.setItem(row_position, 1, QTableWidgetItem(', '.join(keywords)))
-        self.table.setItem(row_position, 2, QTableWidgetItem(emails))
+    # def add_record(self, id_value, keywords, emails):
+    #     """Add a row with the given ID, keywords, and emails to the table."""
+    #     # self.save_keywords()
+    #
+    #     row_position = self.table.rowCount()
+    #     self.table.insertRow(row_position)
+    #
+    #     self.table.setItem(row_position, 0, QTableWidgetItem(str(id_value)))
+    #     self.table.setItem(row_position, 1, QTableWidgetItem(', '.join(keywords)))
+    #     self.table.setItem(row_position, 2, QTableWidgetItem(emails))
 
 
     def update_row(self, id_value, keywords, emails):
@@ -465,7 +465,8 @@ class DashboardWindow(QMainWindow):
         self.setGeometry(100, 100, 1200, 800)
 
         self.handle_keywords = manage_store()
-
+        self.edit_mode = False
+        self.edit_id_value = None
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -498,9 +499,14 @@ class DashboardWindow(QMainWindow):
         # self.settings_widget.save_api_btn.clicked.connect(self.save_api_settings) # save api button is node of -> settings widget
         self.settings_widget.save_email_config_btn.clicked.connect(self.save_schedule_settings)
 
-        self.settings_widget.save_email_list_btn.clicked.connect(self.save_email_list) # and button method connect -> to function that runs
+        # self.settings_widget.save_email_list_btn.clicked.connect(self.save_email_list) # and button method connect -> to function that runs
+
         self.settings_widget.save_email_config_btn.clicked.connect(self.save_email_config)
+
         self.settings_widget.save_keyword_btn.clicked.connect(self.save_keywords_list)
+
+        self.settings_widget.add_button.clicked.connect(self.save_keywords_list)
+
         self.settings_widget.edit_button.clicked.connect(self.edit_record)
         self.settings_widget.toggle_schedule.stateChanged.connect(self.toggle_state_schedule)
         self.settings_widget.delete_button.clicked.connect(self.delete_record)
@@ -583,23 +589,22 @@ class DashboardWindow(QMainWindow):
             return
 
         print(f"Keyword saved: {keywords_list}")
-
         print(f"Email list saved: {email_list}")
-
         store , max_id = self.handle_keywords.get_keyword_email_store()
+        print(type(max_id))
 
-        if max_id is not None: current_id = max_id + 1
-        else: current_id = 1
+        current_id = max_id + 1
 
-        if self.edit_mode :
-            current_id = self.edit_id_val
+        if self.edit_mode == True :
+            current_id = self.edit_id_value
             store[current_id] = {"keywords": keywords_list, "email_list": email_list}
             self.handle_keywords.push_into_keyword_email_store(store)
-            self.retrieve_record()
+            self.add_record( current_id, keywords_list, email_list)
             self.edit_mode = False
 
         else:
             store[current_id] = {"keywords": keywords_list, "email_list": email_list}
+            print(current_id)
             self.handle_keywords.push_into_keyword_email_store(store)
             # self.settings_widget.table
             self.add_record(current_id, keywords_list, email_list)
@@ -622,6 +627,8 @@ class DashboardWindow(QMainWindow):
     def retrieve_record(self):
 
         store, max_id = self.handle_keywords.get_keyword_email_store()
+        print(max_id)
+        max_id = int(max_id)
         # print("Store record", store)
         for i in range(1, max_id+1):
             pass
@@ -634,11 +641,16 @@ class DashboardWindow(QMainWindow):
         # self.save_keywords()
 
         row_position = self.settings_widget.table.rowCount()
+        if id_value > row_position:
+            self.settings_widget.table.insertRow(row_position+1)
+
+
+        print(row_position)
         self.settings_widget.table.insertRow(row_position)
 
         self.settings_widget.table.setItem(row_position, 0, QTableWidgetItem(str(id_value)))
         self.settings_widget.table.setItem(row_position, 1, QTableWidgetItem(', '.join(keywords)))
-        self.settings_widget.table.setItem(row_position, 2, QTableWidgetItem(emails))
+        self.settings_widget.table.setItem(row_position, 2, QTableWidgetItem(', '.join(emails)))
 
     def delete_record(self):
 
@@ -673,7 +685,7 @@ class DashboardWindow(QMainWindow):
         keyword_list , email_list = store[id_value]["keywords"] , store[id_value]["email_list"]
         self.settings_widget.email_list_input.setText(str(email_list))
         self.settings_widget.keyword_input.setText(str(keyword_list))
-        self.edit_mode, self.edit_id_val = True, id_value
+        self.edit_mode, self.edit_id_value = True, id_value
 
         pass
     def run_agent(self):
