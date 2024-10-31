@@ -491,7 +491,7 @@ class DashboardWindow(QMainWindow):
         self.sidebar.market_status_btn.clicked.connect(self.get_market_daily_status)
         self.dashboard_widget.update_button.clicked.connect(self.update_dashboard)
 
-        self.registry_status = self.handle_keywords.get_registry_status()###############
+        self.registry_status = True # self.handle_keywords.get_registry_status()###############
         self.schedule_mode = self.handle_keywords.get_schedule_mode_status()
         self.auto_run_job_agent(self.schedule_mode)
 
