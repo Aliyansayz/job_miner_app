@@ -1,7 +1,0 @@
-PyQt6
-PyQt6-WebEngine
-playwright
-beautifulsoup4
-pyinstaller
-pandas
-schedule
