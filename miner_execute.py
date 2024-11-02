@@ -232,9 +232,9 @@ async def job_miner_execute(keyword, multi_keyword=False, platform="upwork"):
 # List of keywords to search for
 # "ruby on rails",
 
-keywords = [ "ruby on rails", "python-visualization", "python-database", "tableau"]
+# keywords = [ "ruby on rails", "python-visualization", "python-database", "tableau"]
 # keywords = ['ruby on rails']
 # Run the scraping process
 
-asyncio.run(job_miner_execute(keyword=keywords, multi_keyword=True, platform="upwork"))
+# asyncio.run(job_miner_execute(keyword=keywords, multi_keyword=True, platform="upwork"))
 

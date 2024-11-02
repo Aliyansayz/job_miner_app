@@ -1,8 +1,7 @@
 import pickle, json
 import os
-# from dashboard_function import make_dashboard
 import asyncio
-# from miner_execute import job_miner_execute
+from miner_execute import job_miner_execute
 from urllib.request import urlopen
 
 class manage_store:
@@ -216,7 +215,7 @@ class dashboard_email_report:
     pass
 
 
-html_content_list = []
+# html_content_list = []
 # for keyword in keywords:
 #     html_content = saving_html(record_info, keyword)
 #     saving_html(record_info, keyword)
@@ -249,14 +248,15 @@ class run_agent_exceute(manage_store):
                 pass
                 asyncio.run(job_miner_execute(keyword=keyword_list, multi_keyword=True))
                 html_content_list = [self.reading_html(keyword, platform="upwork") for keyword in keyword_list]
-                title_list = [self.compile_title(keyword) for keyword in keyword_list ]
+                # title_list = [self.compile_title(keyword) for keyword in keyword_list ]
+
                 return html_content_list
         pass
 
-    def compile_title(self, keyword):
-
-        title = f"{keyword} Job Report"
-        return title
+    # def compile_title(self, keyword):
+    #
+    #     title = f"{keyword} Job Report"
+    #     return title
 
     def reading_html(self, keyword, platform="upwork"):
         folder_path = f"{platform}_reports"
@@ -299,7 +299,7 @@ class run_agent_exceute(manage_store):
         smtp.login(sender_email, sender_password)
         for target_email in recipient_email_list: # for person A , one keyword jobs then second keyword job report will be emailed
             for html_content, keyword in zip(html_content_list, keyword_list):
-                subject = f"{keyword} Report "
+                subject = f"{keyword} Job Report "
                 html_message = MIMEText(html_content, 'html')
                 html_message['Subject'] = subject
 

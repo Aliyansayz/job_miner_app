@@ -25,10 +25,7 @@ class SidebarWidget(QWidget):
         layout.addWidget(self.market_status_btn)
         layout.addStretch()
 
-    # def run_background_tasks(self):
-    #     while True:
-    #         schedule.run_pending()
-    #         time.sleep(35)
+
 
 class SettingsWidget(QWidget):
     def __init__(self, parent=None):
@@ -453,9 +450,20 @@ class DashboardWidget(QWidget):
         layout.addWidget(self.timeframe_combo)
         layout.addWidget(self.update_button)
 
+    def run_background_tasks(self):
+        while True:
+            schedule.run_pending()
+            time.sleep(35)
+
     def load_dashboard(self, updated=False):
+        if self.agent_auto_run_status:
+            agent_thread = threading.Thread(target=self.run_background_tasks, daemon=True)
+            agent_thread.start()
+
+
         html_content = DashboardLogic.generate_dashboard_html(self.timeframe_combo.currentText(), updated)
         self.web_view.setHtml(html_content)
+
 
 
 class DashboardWindow(QMainWindow):
@@ -465,6 +473,7 @@ class DashboardWindow(QMainWindow):
         self.setGeometry(100, 100, 1200, 800)
 
         self.handle_keywords = manage_store()
+        self.agent_auto_run_status = False
         self.edit_mode = False
         self.edit_id_value = None
 
@@ -551,6 +560,7 @@ class DashboardWindow(QMainWindow):
     def auto_run_job_agent(self, schedule_mode):
         mode     = schedule_mode['status']
         interval = int(schedule_mode['interval'])
+        self.agent_auto_run_status = mode
         if mode == True and self.registry_status == True :
             schedule.every(interval).minutes.do(self.run_agent())
             pass
