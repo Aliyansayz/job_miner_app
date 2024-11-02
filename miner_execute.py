@@ -108,10 +108,10 @@ def scrape_upwork_html(job_store, word, response):
         # Print the job details
         title = job_link_title.text
 
-        title = filter_special_chars(title)
+        # title = filter_special_chars(title)
         job_type = filter_special_chars(job_type)
         job_value_str = filter_special_chars(job_value_str)
-        job_details   = filter_special_chars(job_details)
+        # job_details   = filter_special_chars(job_details)
 
         job_store[word][record_id] = {}
         job_store[word][record_id]["title"] = title
