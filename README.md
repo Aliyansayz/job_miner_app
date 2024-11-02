@@ -1,3 +1,6 @@
+pyinstaller --onedir job_miner_app.py
+
+
 # job_miner_app
 job miner app
 
