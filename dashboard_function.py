@@ -173,12 +173,13 @@ def duplicate_files_fix(default_filename ):
         os.rename(default_filename, updated_path)
 
 
-def reading_html(keyword):
+def reading_html(keyword, platform=None):
 
     folder_path = "reports"
     filename = f"Job_Mining_{keyword}.html"
-
-
+    if platform != None:
+        folder_path = f"{str(platform).lower()}_reports"
+    
     if not os.path.exists(folder_path): os.makedirs(folder_path)
     file_path = os.path.join(folder_path, filename)
 
