@@ -246,7 +246,7 @@ class run_agent_exceute(manage_store):
         for platform in allowed:
             if platform == "upwork":
                 pass
-                asyncio.run(job_miner_execute(keyword=keyword_list, multi_keyword=True))
+                asyncio.run(job_miner_execute(keyword=keyword_list, multi_keyword=True , platform="upwork" ))
                 html_content_list = [self.reading_html(keyword, platform="upwork") for keyword in keyword_list]
                 # title_list = [self.compile_title(keyword) for keyword in keyword_list ]
 
@@ -265,7 +265,7 @@ class run_agent_exceute(manage_store):
         if not os.path.exists(folder_path): os.makedirs(folder_path)
         file_path = os.path.join(folder_path, filename)
 
-        with open(file_path, "rb+") as file: html_content = file.read()
+        with open(file_path, "rb") as file: html_content = file.read()
         # Start counter for potential duplicate file names
 
         return html_content
