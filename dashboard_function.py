@@ -183,7 +183,7 @@ def reading_html(keyword, platform=None):
     if not os.path.exists(folder_path): os.makedirs(folder_path)
     file_path = os.path.join(folder_path, filename)
 
-    with open(file_path, "r") as file: html_content = file.read()
+    with open(file_path, "r", encoding="utf-8") as file: html_content = file.read()
     # Start counter for potential duplicate file names
 
     return html_content
@@ -192,7 +192,7 @@ def reading_html(keyword, platform=None):
 def saving_html(record_info, keyword, platform=None):
 
     # import pickle
-    # with open(f"record_{keyword}.txt", 'w') as file:
+    # with open(f"record_{keyword}.txt", 'w' , encoding="utf-8") as file:
     #     pickle.dump(record_info, file)
 
 
