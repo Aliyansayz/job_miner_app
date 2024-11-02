@@ -4,7 +4,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QUrl, pyqtSlot, Qt
 from datetime import datetime, timedelta
-import schedule, time
+import schedule, time, threading
 from keyword_email_store import manage_store, run_agent_exceute
 
 
